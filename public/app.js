@@ -15,7 +15,30 @@ signInBtn.onclick = () => {signInWithPopup(auth, provider)};
 signOutBtn.onclick = () => {signOut(auth)};
 
 const userDetails = document.getElementById('userDetails');
+
 const contactRequestList = document.getElementById('contactRequestList');
+async function showContactRequests() {
+  try {
+    const contactReqsRef = collection(db, 'contactRequests');
+    const snapshot = await getDocs(contactReqsRef);
+
+    if (snapshot.empty) {
+      contactRequestList.innerHTML = '<p>No contact requests found.</p>';
+      return;
+    }
+
+    let html = '<h3>Current customer requests:</h3><ul>';
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      html += `<li>${data.message || 'No message'}</li>`;
+    });
+    html += '</ul>';
+    contactRequestList.innerHTML = html;
+  } catch (error) {
+    console.error('Error fetching contact requests:', error);
+    contactRequestList.innerHTML = '<p>Error loading contact requests.</p>';
+  }
+}
 
 auth.onAuthStateChanged(user => {
   if (user) { // if signed in
@@ -23,7 +46,8 @@ auth.onAuthStateChanged(user => {
      whenSignedOut.hidden = true;
 
      userDetails.innerHTML = `<h3>Hello ${user.displayName}!</h3> <p>User ID: ${user.uid}</p>`
-     contactRequestList.innerHTML = `<p>yo?</p>`
+     showContactRequests()
+     
     } else {
      whenSignedIn.hidden = true;
      whenSignedOut.hidden = false;
